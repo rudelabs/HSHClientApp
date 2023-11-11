@@ -1,73 +1,91 @@
-import React, { useState } from 'react';
-import { View, Dimensions, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Dimensions, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 const { width, height } = Dimensions.get('window');
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUser, setDomain, setlogUserDetail, setlogUserDetailFull, setVehicle } from './functions/helper';
+import firestore from '@react-native-firebase/firestore';
 
-const Login = ({ navigation }) => {
+const UserLogin = ({ navigation }) => {
     const [loading, setloading] = useState(false);
-
+    const [logUser, setlogUser] = useState();
     const [email, setemail] = useState('');
     const [pword, setpword] = useState('');
-    const [emailinvalid, setemailinvalid] = useState(false);
-    const [err, seterr] = useState(false);
-    const [errmsg, seterrmsg] = useState(
-        '',
-    );
-    const inValidator = (err, msg) => {
-        seterr(true), seterrmsg(msg);
-    };
-    const loginStart = () => {
-        if (email.length === 0) return inValidator(true, 'Email required');
-        else if (pword.length === 0)
-            return inValidator(true, 'Password Field Cannot be left Empty');
-        else {
-            setloading(true);
-            auth()
-                .signInWithEmailAndPassword(email, pword)
-                .then(() => {
-                    console.log('User signed in!');
-                    AsyncStorage.removeItem('username');
-                    AsyncStorage.removeItem('password');
-                    setloading(false);
-                    navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'SignInContainer' }],
-                    });
-                })
-                .catch(error => {
-                    console.log(error);
+    // const user = getUser();
+    const domain = useRef(null);
+    useEffect(() => {
+        // setloading(false);
+        // const user = auth().currentUser;
+        // console.log('user', user);
+        // if (user.uid) {
+        //     console.log(user.uid);
+        //     setlogUser(user.email)
+        //     firestore().collection('users').doc(user.uid).get().then(document => {
+        //         console.log(document.data().url);
+        //         setloading(false);
+        domain.current = "https://hsh.vellas.net:90/pump/api/Values";
+        // domain.current = "https://demo.vellas.net:94/pump/api/Values";
+        setDomain("https://hsh.vellas.net:90/pump/api/Values");
+        loginStart();
+        //     }).catch();
+        // }
+        // else {
+        //     setloading(false);
+        //     auth().signOut();
 
-                    if (error.code === 'auth/user-not-found')
-                        inValidator(true, 'Incorrect Credentials');
-                    else if (error.code === 'auth/wrong-password')
-                        inValidator(true, 'The password is invalid');
-                    setloading(false);
-                });
+        // }
+    }, [])
+    const loginStart = async () => {
+        var un = email;
+        var pass = pword;
+        var username = await AsyncStorage.getItem('username');
+        var password = await AsyncStorage.getItem('password');
+        if (username && password) {
+            un = username;
+            pass = password
         }
-    };
+        if (un && pass) {
+            setloading(true);
+            const url = `${domain.current}/GetUsersLogin?_token=b95909e1-d33f-469f-90c6-5a2fb1e5627c&username=${encodeURIComponent(un)}&pw=${encodeURIComponent(pass)}`;
+            console.log(url);
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    if (data.length > 0) {
+                        console.log(data);
+                        AsyncStorage.setItem('username', un);
+                        AsyncStorage.setItem('password', pass);
+                        setlogUserDetail(un);
+                        setlogUserDetailFull(data[0])
+                        setloading(false);
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'LoggedInContainer' }],
+                        });
+                    }
+                    else {
+                        Alert.alert('Wrong credentials!')
+                        setloading(false)
+                    }
+                })
+                .catch(e => {
+                    console.log('error:', e)
+                    Alert.alert('Wrong credentials!')
+                    setloading(false)
+                })
+        }
+    }
     return (
         <View style={{ flex: 1, backgroundColor: '#c8e1ff37' }}>
             <ScrollView>
                 <View style={{ marginTop: 50, paddingLeft: 20 }}>
-                    <Text style={{ fontSize: 30, lineHeight: 42, fontWeight: 'bold', color: "#01315C" }}>Welcome back,</Text>
+                    <Text style={{ fontSize: 30, lineHeight: 42, fontWeight: 'bold', color: "#01315C" }}>Welcome user,</Text>
                     <Text style={{ fontSize: 20, lineHeight: 42, fontWeight: 'bold', color: "#01315C" }}>Login to continue</Text>
-                    {err && (
-                        <View
-                            style={{
-                                width: '100%',
-                                height: 50,
-                                paddingHorizontal: 10,
-                                justifyContent: 'center',
-                                backgroundColor: '#d3d3d360',
-                            }}>
-                            <Text style={{ color: 'red', fontSize: 14 }}>&bull; {errmsg}</Text>
-                        </View>
-                    )}
                 </View>
                 <View style={[styles.container]}>
                     <View style={{ flex: 1, marginTop: 20, padding: 5, width: '100%' }}>
-                        <Text style={{ fontSize: 18, paddingBottom: 5 }}>Email</Text>
+                        <Text style={{ fontSize: 18, paddingBottom: 5 }}>Username</Text>
                         <TextInput
                             onChangeText={text => setemail(text)}
                             style={{
@@ -124,6 +142,13 @@ const Login = ({ navigation }) => {
                                 <Text style={{ fontSize: 22, color: "#fff" }}>Login</Text>
                             </TouchableOpacity>
                         )}
+                        {/* <TouchableOpacity onPress={() => {
+                            auth().signOut().then(() => navigation.replace('ClientSign'))
+                        }} style={{
+
+                        }} >
+                            <Text style={{ fontSize: 18, color: "#01315C", textAlign: 'center', marginTop: 20 }}>Log Out</Text>
+                        </TouchableOpacity> */}
 
                     </View>
                 </View>
@@ -143,4 +168,4 @@ const styles = StyleSheet.create({
 });
 
 
-export default Login;
+export default UserLogin;
