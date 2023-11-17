@@ -78,9 +78,11 @@ const NewOrder = ({ navigation }) => {
     const getBusinessAddress = async () => {
         const user = getlogUserFull();
         const domain = getDomain();
+        console.log("Domain", domain + `/getBusinessAddressByBusinessId?_token=BDB47BFE-A891-4D77-AFBB-27928083D777&custId=${user.company_id}`)
         try {
             const response = await fetch(domain + `/getBusinessAddressByBusinessId?_token=BDB47BFE-A891-4D77-AFBB-27928083D777&custId=${user.company_id}`);
             const json = await response.json();
+            console.log("Address", json)
             setBusinessAddress(json);
             setLoading(false)
         } catch (error) {
@@ -98,7 +100,7 @@ const NewOrder = ({ navigation }) => {
         fetch(domain + '/getProductList?_token=FAEB7E31-0DE5-48BE-9EC9-8D97D21EF8B3')
             .then(response => response.json())
             .then(result => {
-                console.log(result);
+                console.log(JSON.stringify(result));
                 var fResult = result.filter(val => val.category !== '')
                 setProductList(fResult)
             })
@@ -125,10 +127,10 @@ const NewOrder = ({ navigation }) => {
     const AddressView = ({ item }) => {
         return (
             <TouchableOpacity style={{ justifyContent: 'center', borderBottomWidth: 1, borderColor: '#0465bd', padding: 6 }}
-                onPress={() => { setAddress(item.ADDRESS), hideAddressModal() }}
+                onPress={() => { setAddress(item.OUTLET), hideAddressModal() }}
             >
-                {item.ADDRESS ?
-                    <Text style={[styles.text, { fontSize: width / 20, alignSelf: 'center', color: '#0465bd' }]}>{item.ADDRESS}</Text>
+                {item.OUTLET ?
+                    <Text style={[styles.text, { fontSize: width / 20, alignSelf: 'center', color: '#0465bd' }]}>{item.OUTLET}</Text>
                     :
                     <Text style={[styles.text, { fontSize: width / 20, alignSelf: 'center', color: '#0465bd' }]}>No Address Available</Text>
                 }
@@ -266,7 +268,7 @@ const NewOrder = ({ navigation }) => {
                                 {userData?.display_name}
                             </Text>
                             <Text style={{ fontSize: width / 20, color: '#01315C', marginVertical: 10 }}>
-                                Business Address
+                                Delivery Address
                             </Text>
                             <TouchableOpacity style={{ borderWidth: 1, borderRadius: 8, padding: 10 }} onPress={showAddressModal}>
                                 <Text
@@ -305,7 +307,7 @@ const NewOrder = ({ navigation }) => {
                             </Text>
                             <KeyboardAvoidingView
                                 style={{ marginBottom: 50 }}>
-                                <TextInput style={[styles.remarks]} multiline={true} numberOfLines={4} value={remark} onChangeText={text => setremark(text)} />
+                                <TextInput placeholder={`please contact:\nMobile:`} style={[styles.remarks]} multiline={true} numberOfLines={4} value={remark} onChangeText={text => setremark(text)} />
                             </KeyboardAvoidingView>
                         </View>
                     </View>

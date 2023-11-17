@@ -167,7 +167,7 @@ const OrderHistoryNew = ({ navigation }) => {
                             {val.ADDRESS2 && <Text style={{ fontSize: width / 20, marginTop: 10 }}>Site: {val.ADDRESS2}</Text>}
 
 
-                            {val.SALES_PERSON_NAME && <Text style={{ fontSize: width / 20, marginTop: 10 }}>Sales person: {val.SALES_PERSON_NAME}</Text>}
+                            {val.SALES_PERSON_NAME && <Text style={{ fontSize: width / 20, marginTop: 10 }}>Sales Rep: {val.SALES_PERSON_NAME}</Text>}
                         </View>
                     })}
                 </ScrollView>
